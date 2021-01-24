@@ -1,0 +1,8 @@
+kr.ac.ync.free_board
+kr.ac.ync.game_forum
+kr.ac.ync.game_forum.controller
+kr.ac.ync.game_forum.dao
+kr.ac.ync.game_forum.service
+kr.ac.ync.game_forum.service.impl
+kr.ac.ync.game_forum.util
+kr.ac.ync.game_forum.vo

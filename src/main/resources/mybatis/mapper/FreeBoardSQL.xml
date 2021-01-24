@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<mapper 
+	namespace="kr.ac.ync.game_forum.dao.GameForumDAO">
+	
+	<update id="updateGameForum">
+		UPDATE tbl_game_forum SET 
+		title = #{title},
+		content = #{content},
+		img_file = #{img_file}
+		WHERE idx = #{idx}
+	</update>
+	
+	<delete id="gameForumDelete" parameterType="int">
+		DELETE FROM tbl_game_forum
+		WHERE idx = #{idx} 
+	</delete>
+	
+	<select id="getFilePath" parameterType="int" resultType="java.lang.String">
+		SELECT img_file FROM tbl_game_forum
+		WHERE idx = #{idx}
+	</select>
+	
+	<insert id="gameForumUploadGame">
+		INSERT INTO gf_games (appids, gametitle, member_id, thumbnail)
+		VALUES
+		(#{appids}, #{gametitle}, #{member_id}, #{thumbnail})
+	</insert>
+	
+	<update id="gameForumModifyGame">
+		UPDATE gf_games SET 
+		appids = #{appids},
+		gametitle = #{gametitle},
+		thumbnail = #{thumbnail}
+		WHERE member_id = #{member_id} AND game_idx = #{game_idx}
+	</update>
+	
+	<delete id="gameForumRemoveGame">
+		DELETE FROM gf_games
+		WHERE game_idx = #{game_idx} AND member_id = #{member_id}
+	</delete>
+	
+	<insert id="gameForumRegist">
+		INSERT INTO gf_member (member_id, name, email, nickname, password, profile, image)
+		VALUES
+		(#{member_id}, #{name}, #{email}, #{nickname}, #{password}, #{profile}, #{image})
+	</insert>
+	
+	<select id="gameForumLogin" parameterType="java.lang.String"
+		resultType="kr.ac.ync.game_forum.vo.GameForumLoginVO">
+		SELECT member_id, name, email, nickname, profile, image, regdate
+		FROM gf_member
+		WHERE member_id = #{member_id} AND password = #{password}
+	</select>
+	
+	<select id="gameForumIdCheck" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) AS count FROM gf_member
+		WHERE member_id = #{member_id}
+	</select>
+	
+	<select id="gameForumSearchID" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(*) FROM gf_member
+		WHERE email = #{email}
+	</select>
+	
+	<select id="gameForumSearchIDResult" parameterType="java.lang.String"
+		resultType="kr.ac.ync.game_forum.vo.GameForumSearchIDResultVO">
+		SELECT member_id, nickname, email FROM gf_member
+		WHERE email = #{email}
+	</select>
+	
+	<update id="gameForumModifyPW">
+		UPDATE gf_member SET 
+		password = #{password}
+		WHERE member_id = #{member_id}
+	</update>
+	
+	<select id="gameForumGetProfile" parameterType="java.lang.String"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetProfileVO">
+		SELECT member_id, name, email, nickname, profile, image, regdate
+		FROM gf_member
+		WHERE member_id = #{member_id} 
+	</select>
+	
+	<select id="gameForumGetLatestForum" parameterType="int"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetLatestForumVO">
+		SELECT gb.content_idx, board_code, title, gm.nickname, content, gb.image,
+		       (SELECT count(member_id) FROM gf_likes gl WHERE gb.content_idx = gl.content_idx) AS likes,
+			   gb.regdate
+		FROM   gf_board gb, gf_member gm
+		WHERE  gb.member_id = gm.member_id
+		AND    board_code = #{board_code}
+		ORDER BY regdate DESC, content_idx DESC
+		LIMIT 0, 5
+	</select>
+	
+	<select id="gameForumGetLatestGame"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetLatestGameVO">
+		SELECT appids, gametitle, gm.nickname, thumbnail, gg.regdate
+		FROM gf_games gg, gf_member gm
+		WHERE gg.member_id = gm.member_id
+		ORDER BY regdate DESC
+		LIMIT 5;
+	</select>
+	
+	<update id="gameForumModifyProfile">
+		UPDATE gf_member SET 
+		name = #{name},
+		email = #{email},
+		nickname = #{nickname},
+		password = #{password},
+		profile = #{profile},
+		image = #{image}
+		WHERE member_id = #{member_id}
+	</update>
+	
+	<select id="memberImagePathGet" resultType="java.lang.String">
+		SELECT image FROM gf_member WHERE member_id = #{member_id}
+	</select>
+	
+	<select id="gameForumGetList" parameterType="int"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetListVO">
+		SELECT gb.content_idx, board_code, title, appids, gm.nickname, content, gb.image,
+			   (SELECT count(member_id) FROM gf_likes gl WHERE gb.content_idx = gl.content_idx) AS likes,
+			   gb.regdate
+		FROM   gf_board gb, gf_member gm
+		WHERE  gb.member_id = gm.member_id
+		AND    board_code = #{board_code}
+		ORDER BY regdate DESC, content_idx DESC
+		LIMIT #{startNum}, 10
+	</select>
+	
+	<select id="gameForumGetListWithKeywords"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetListVO">
+		SELECT gb.content_idx, board_code, title, appids, gm.nickname, content, gb.image,
+			   (SELECT count(member_id) FROM gf_likes gl WHERE gb.content_idx = gl.content_idx) AS likes,
+			   gb.regdate
+		FROM   gf_board gb, gf_member gm
+		WHERE  gb.member_id = gm.member_id
+		AND    board_code = #{board_code}
+		AND    title LIKE '%${title}%' 
+		AND    content LIKE '%${content}%' 
+		AND    gm.nickname LIKE '%${nickname}%' 
+		ORDER BY regdate DESC, content_idx DESC
+		LIMIT #{startNum}, 10
+		
+	</select>
+	
+	<select id="gameForumGetGameList" parameterType="int"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetGameListVO">
+		SELECT appids, gametitle, gm.nickname, thumbnail, gg.regdate
+		FROM   gf_games gg, gf_member gm
+		WHERE gg.member_id = gm.member_id
+		ORDER BY regdate DESC
+		LIMIT #{startNum}, 10
+	</select>
+	
+	<select id="gameForumGetGameListWithKeywords"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetGameListVO">
+		SELECT appids, gametitle, gm.nickname, thumbnail, gg.regdate
+		FROM   gf_games gg, gf_member gm
+		WHERE  gg.member_id = gm.member_id
+		AND    gametitle LIKE '%${gametitle}%'
+		ORDER BY regdate DESC
+		LIMIT #{startNum}, 10
+	</select>
+	
+	<select id="gameForumGetView" parameterType="int"
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetViewVO">
+		SELECT gb.content_idx, board_code, title, appids, gm.nickname , content, gb.image, 
+			   (SELECT count(member_id) FROM gf_likes gl WHERE gb.content_idx = gl.content_idx) AS likes,
+			   gb.regdate
+		FROM   gf_board gb, gf_member gm
+		WHERE  gb.member_id = gm.member_id
+		AND    content_idx = #{content_idx}
+	</select>
+	
+	<select id="gameForumGetLikes"
+		resultType="int">
+		SELECT COUNT(*) AS count FROM gf_likes
+		WHERE member_id = #{member_id} AND content_idx = #{content_idx}	
+	</select>
+	
+	<insert id="gameForumInsertLikes">
+		INSERT INTO gf_likes (member_id, content_idx)
+		VALUES
+		(#{member_id}, #{content_idx})
+	</insert>
+	
+	<delete id="gameForumCancelLikes">
+		DELETE FROM gf_likes
+		WHERE member_id = #{member_id} AND content_idx = #{content_idx}	
+	</delete>
+	
+	<insert id="gameForumInsertForum">
+		INSERT INTO gf_board (board_code, title, appids, member_id, content, image)
+		VALUES
+		(#{board_code}, #{title}, #{appids}, #{member_id}, #{content}, #{image})
+	</insert>
+	
+	<select id="forumImagePathGet" resultType="java.lang.String">
+		SELECT image FROM gf_board WHERE content_idx = #{content_idx}
+	</select>
+	
+	<select id="gameThumbnailPathGet" resultType="java.lang.String">
+		SELECT thumbnail FROM gf_games WHERE game_idx = #{game_idx}
+	</select>
+	
+	<update id="gameForumModifyForum">
+		UPDATE gf_board SET 
+		board_code = #{board_code},
+		title = #{title},
+		appids = #{appids},
+		content = #{content},
+		image = #{image}
+		WHERE member_id = #{member_id} AND content_idx = #{content_idx}
+	</update>
+	
+	<delete id="gameForumRemoveForum">
+		DELETE FROM gf_board
+		WHERE content_idx = #{content_idx} AND member_id = #{member_id}
+	</delete>
+	
+	<insert id="gameForumInsertReply">
+		INSERT INTO gf_reply (content_idx, member_id, reply_content)
+		VALUES
+		(#{content_idx}, #{member_id}, #{reply_content})
+	</insert>
+	
+	<update id="gameForumModifyReply">
+		UPDATE gf_reply SET 
+		reply_content = #{reply_content}
+		WHERE member_id = #{member_id} AND reply_idx = #{reply_idx}
+	</update>
+	
+	<delete id="gameForumRemoveReply">
+		DELETE FROM gf_reply
+		WHERE reply_idx = #{reply_idx} AND member_id = #{member_id}
+	</delete>
+	
+	<select id="gameForumReplyList" parameterType="int"
+		resultType="kr.ac.ync.game_forum.vo.GameForumReplyListVO">
+		SELECT (ROW_NUMBER() OVER (ORDER BY reply_idx)) AS replyNum, gm.nickname, reply_content, gr.regdate
+		FROM   gf_reply gr, gf_member gm
+		WHERE  gr.member_id = gm.member_id
+		AND    content_idx = #{content_idx}
+		ORDER BY reply_idx
+		LIMIT #{startNum}, 20
+	</select>
+	
+	<select id="searchAuthcode" resultType="int">
+		SELECT COUNT(*) AS count 
+		FROM gf_authcode
+		WHERE email = #{email}
+	</select>
+	
+	<delete id="resetAuthCode">
+		DELETE FROM gf_authcode
+		WHERE  email = #{email}
+	</delete>
+	
+	<insert id="inputAuthCode">
+		INSERT INTO gf_authcode (email, authcode)
+		VALUES (#{email}, #{authcode})
+	</insert>
+	
+	<select id="authcodeCheck" resultType="int">
+		SELECT COUNT(*) AS count
+		FROM gf_authcode
+		WHERE email = #{email} AND authcode = #{authcode}
+	</select>
+	
+	<select id="gameForumGetLikesList" 
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetLikesListVO">
+		SELECT gb.content_idx, gb.board_code, gb.title, gm.nickname, gb.image,
+		(SELECT count(member_id) FROM gf_likes gl WHERE gb.content_idx = gl.content_idx) AS likes, gb.regdate AS contentRegdate, gl.regdate AS likesDate
+		FROM   gf_likes gl, gf_board gb, gf_member gm
+		WHERE  gl.content_idx = gb.content_idx AND gb.member_id = gm.member_id
+		AND    gl.member_id = #{member_id} 
+		LIMIT  #{startNum}, 10;
+	</select>
+	
+	<select id="gameForumGetLikesListWithKeywords" 
+		resultType="kr.ac.ync.game_forum.vo.GameForumGetLikesListVO">
+		SELECT gb.content_idx, gb.board_code, gb.title, gm.nickname, gb.image,
+		(SELECT count(member_id) FROM gf_likes gl WHERE gb.content_idx = gl.content_idx) AS likes, gb.regdate AS contentRegdate, gl.regdate AS likesDate
+		FROM   gf_likes gl, gf_board gb, gf_member gm
+		WHERE  gl.content_idx = gb.content_idx AND gb.member_id = gm.member_id
+		AND    gl.member_id = #{member_id} 
+		AND    title LIKE '%${title}%' 
+		AND    content LIKE '%${content}%' 
+		AND    gm.nickname LIKE '%${nickname}%' 
+		LIMIT  #{startNum}, 10;
+	</select>
+	
+	
+
+</mapper>

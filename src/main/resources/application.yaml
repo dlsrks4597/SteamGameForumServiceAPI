@@ -1,0 +1,44 @@
+# sever url
+server:
+  servlet:
+    context-path: /GameForum
+---
+spring:
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+---
+# sql mapper.xml result type just user object name
+mybatis:
+  type-aliases-package: kr.ac.ync.game_forum
+  mapper-locations: mybatis/**/*.xml
+  configuration:
+    jdbc-type-for-null: 'NULL'
+    cache-enabled: 'FALSE'
+---    
+    
+# DB connect info
+spring:  datasource:    driver-class-name: org.mariadb.jdbc.Driver
+---
+spring:
+  datasource:
+    url: jdbc:mariadb://220.67.3.16:3306/game_forum?characterEncoding=UTF-8&allowMultiQueries=true
+    username: kyh16
+    password: 1234 
+---
+spring:
+  servlet:
+    multipart:
+     enabled: true
+     max-file-size: 10MB
+     max-request-size: 64MB
+---
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: dydgjs1575@gmail.com
+    password: security
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
